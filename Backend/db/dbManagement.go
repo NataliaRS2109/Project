@@ -23,7 +23,7 @@ func InitTable(ctx context.Context, tx pgx.Tx) error {
 	// Esta tabla almacenará los datos obtenidos de la API.
 	log.Println("Creating items table.")
 	if _, err := tx.Exec(ctx,
-		"CREATE TABLE items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), ticket TEXT, company TEXT, action TEXT, brokerage TEXT, target_to TEXT, target_from TEXT, rating_from TEXT, rating_to TEXT, time TEXT, page_count INT)"); err != nil {
+		"CREATE TABLE items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), ticket TEXT, company TEXT, action TEXT, brokerage TEXT, target_to TEXT, target_from TEXT, rating_from TEXT, rating_to TEXT, time TEXT, page_count INT, order_index INT)"); err != nil {
 		return err
 	}
 	return nil
@@ -35,13 +35,13 @@ func InsertRows(ctx context.Context, tx pgx.Tx, items []api.Item) error { // Ins
 		if _, err := tx.Exec(ctx,
 			`INSERT INTO items (
 				id, ticket, company, action, brokerage,
-				target_to, target_from, rating_from, rating_to, time, page_count
+				target_to, target_from, rating_from, rating_to, time, page_count, order_index
 			) VALUES (
 				$1, $2, $3, $4, $5,
-				$6, $7, $8, $9, $10, $11
+				$6, $7, $8, $9, $10, $11, $12
 			)`, // Insertar cada elemento en la tabla "items"
 			uuid.New(), item.Ticker, item.Company, item.Action, item.Brokerage,
-			item.Target_to, item.Target_from, item.Rating_from, item.Rating_to, item.Time, item.PageCount, // Usar uuid.New() para generar un nuevo UUID para cada fila
+			item.Target_to, item.Target_from, item.Rating_from, item.Rating_to, item.Time, item.PageCount, item.OrderIndex, // Usar uuid.New() para generar un nuevo UUID para cada fila
 		); err != nil {
 			return err
 		}
@@ -50,8 +50,15 @@ func InsertRows(ctx context.Context, tx pgx.Tx, items []api.Item) error { // Ins
 }
 
 func PrintItems(conn *pgx.Conn, c *fiber.Ctx) error {
+
+	// 1. Leer parámetro de página desde la URL
+	page := c.QueryInt("page", 1)
+	if page < 1 {
+		page = 1
+	}
+
 	rows, err := conn.Query(context.Background(),
-		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count FROM items WHERE page_count = 1`)
+		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index FROM items WHERE page_count = $1`, page)
 	if err != nil {
 		return fmt.Errorf("error querying items: %w", err)
 	}
@@ -80,6 +87,7 @@ func PrintItems(conn *pgx.Conn, c *fiber.Ctx) error {
 			&item.Rating_to,
 			&item.Time,
 			&item.PageCount,
+			&item.OrderIndex,
 		); err != nil {
 			return fmt.Errorf("error scanning row: %w", err)
 		}

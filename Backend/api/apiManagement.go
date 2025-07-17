@@ -24,6 +24,7 @@ type Item struct { //Los nombres en json:"..." le dicen a Go cómo debe mapear e
 	Rating_to   string `json:"rating_to"`
 	Time        string `json:"time"`
 	PageCount   int    // Contador de páginas
+	OrderIndex  int    // Índice de orden para mantener el orden de los items
 }
 
 func ApiGetItems() []Item {
@@ -32,6 +33,7 @@ func ApiGetItems() []Item {
 
 	nextPage := ""
 	pageCount := 1
+	order := 1
 	var allItems []Item // Slice para almacenar todos los items obtenidos de la API
 
 	for {
@@ -81,8 +83,11 @@ func ApiGetItems() []Item {
 
 		// Añadir PageCount a cada item
 		for _, item := range page.Items {
+
 			item.PageCount = pageCount
+			item.OrderIndex = order // Asignar el índice de orden al item
 			allItems = append(allItems, item)
+			order++ // Incrementar el índice de orden para cada item
 		}
 
 		if page.NextPage == "" {
