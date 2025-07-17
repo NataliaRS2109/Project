@@ -1,4 +1,5 @@
 export interface Item {
+    id: string; // Identificador único del ítem
     ticker: string; // Ticker del ítem
     target_from: string; // Valor objetivo desde
     target_to: string; // Valor objetivo hasta
