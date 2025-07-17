@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
@@ -48,20 +49,25 @@ func InsertRows(ctx context.Context, tx pgx.Tx, items []api.Item) error { // Ins
 	return nil
 }
 
-func PrintItems(conn *pgx.Conn) error { // Imprimir los elementos insertados en la base de datos.
-	rows, err := conn.Query(context.Background(), // Obtener todas las filas de la tabla "items"
-		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count FROM items WHERE page_count = 1`) // Obtener todas las filas de la tabla "items"
+func PrintItems(conn *pgx.Conn, c *fiber.Ctx) error {
+	rows, err := conn.Query(context.Background(),
+		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count FROM items WHERE page_count = 1`)
 	if err != nil {
-		return fmt.Errorf("error querying items: %w", err) // Manejo de errores al consultar la base de datos
+		return fmt.Errorf("error querying items: %w", err)
 	}
-	defer rows.Close() // Asegurarse de cerrar las filas al final
+	defer rows.Close()
 
-	for rows.Next() { // Iterar sobre cada fila obtenida
-		// Crear variables para almacenar los datos de cada fila
+	type Result struct {
+		ID       uuid.UUID `json:"id"`
+		api.Item           // incrustamos los campos de api.Item
+	}
+
+	var items []Result
+
+	for rows.Next() {
 		var id uuid.UUID
 		var item api.Item
 
-		// Leer los campos de la fila
 		if err := rows.Scan(
 			&id,
 			&item.Ticker,
@@ -73,29 +79,17 @@ func PrintItems(conn *pgx.Conn) error { // Imprimir los elementos insertados en 
 			&item.Rating_from,
 			&item.Rating_to,
 			&item.Time,
-			&item.PageCount, // Agregar PageCount para mostrar el número de página
+			&item.PageCount,
 		); err != nil {
 			return fmt.Errorf("error scanning row: %w", err)
 		}
 
-		// Mostrar datos detallados
-		fmt.Println("─────────────────────────────")
-		fmt.Printf("ID:            %s\n", id)
-		fmt.Printf("Ticker:        %s\n", item.Ticker)
-		fmt.Printf("Company:       %s\n", item.Company)
-		fmt.Printf("Action:        %s\n", item.Action)
-		fmt.Printf("Brokerage:     %s\n", item.Brokerage)
-		fmt.Printf("Target From:   %s\n", item.Target_from)
-		fmt.Printf("Target To:     %s\n", item.Target_to)
-		fmt.Printf("Rating From:   %s\n", item.Rating_from)
-		fmt.Printf("Rating To:     %s\n", item.Rating_to)
-		fmt.Printf("Time:          %s\n", item.Time)
-		fmt.Printf("Page:         %d\n", item.PageCount)
+		items = append(items, Result{ID: id, Item: item})
 	}
 
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("row iteration error: %w", err)
 	}
 
-	return nil
+	return c.JSON(items)
 }

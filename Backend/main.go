@@ -3,6 +3,7 @@ package main
 import (
 	"backend/api"
 	"backend/db"
+	"backend/server"
 	"context"
 	"log"
 	"os"
@@ -56,6 +57,6 @@ func main() {
 	}
 	log.Println("New rows created.")
 
-	db.PrintItems(conn) // Imprimir los elementos insertados en la base de datos
-	log.Println("Items printed successfully.")
+	// Start the server
+	server.StartApiServer(conn) // Iniciar el servidor con la conexión a la base de datos
 }
