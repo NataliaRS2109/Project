@@ -25,6 +25,11 @@ func StartApiServer(conn *pgxpool.Pool) {
 		return db.PrintRecomendedItems(conn, c)
 	})
 
+	app.Get("/items/filter", func(c *fiber.Ctx) error {
+		text := c.Query("text", "")
+		return db.PrintFilteredItems(conn, c, text)
+	})
+
 	log.Fatal(app.Listen(":3000")) // Iniciar el servidor en el puerto 3000
 	log.Println("Server started on port 3000")
 }

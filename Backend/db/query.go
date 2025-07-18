@@ -19,7 +19,7 @@ func PrintItems(conn *pgxpool.Pool, c *fiber.Ctx) error {
 	}
 
 	rows, err := conn.Query(context.Background(),
-		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items WHERE page_count = $1 ORDER BY order_index`, page)
+		`SELECT id, ticker, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items WHERE page_count = $1 ORDER BY order_index`, page)
 	if err != nil {
 		return fmt.Errorf("error querying items: %w", err)
 	}
@@ -66,7 +66,61 @@ func PrintItems(conn *pgxpool.Pool, c *fiber.Ctx) error {
 
 func PrintRecomendedItems(conn *pgxpool.Pool, c *fiber.Ctx) error {
 	rows, err := conn.Query(context.Background(),
-		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items ORDER BY score DESC LIMIT 12`)
+		`SELECT id, ticker, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items ORDER BY score DESC LIMIT 12`)
+	if err != nil {
+		return fmt.Errorf("error querying items: %w", err)
+	}
+	defer rows.Close()
+
+	type Result struct {
+		ID       uuid.UUID `json:"id"`
+		api.Item           // incrustamos los campos de api.Item
+	}
+
+	var items []Result
+
+	for rows.Next() {
+		var id uuid.UUID
+		var item api.Item
+
+		if err := rows.Scan(
+			&id,
+			&item.Ticker,
+			&item.Company,
+			&item.Action,
+			&item.Brokerage,
+			&item.Target_to,
+			&item.Target_from,
+			&item.Rating_from,
+			&item.Rating_to,
+			&item.Time,
+			&item.PageCount,
+			&item.OrderIndex,
+			&item.Score,
+		); err != nil {
+			return fmt.Errorf("error scanning row: %w", err)
+		}
+
+		items = append(items, Result{ID: id, Item: item})
+	}
+
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("row iteration error: %w", err)
+	}
+
+	return c.JSON(items)
+}
+
+func PrintFilteredItems(conn *pgxpool.Pool, c *fiber.Ctx, text string) error {
+	pattern := "%" + text + "%"
+
+	rows, err := conn.Query(context.Background(),
+		`SELECT id, ticker, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items 
+		WHERE   
+			ticker ILIKE $1 OR 
+            company ILIKE $1 OR 
+            action ILIKE $1 OR 
+            brokerage ILIKE $1`, pattern)
 	if err != nil {
 		return fmt.Errorf("error querying items: %w", err)
 	}

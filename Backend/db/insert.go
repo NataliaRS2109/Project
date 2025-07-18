@@ -14,7 +14,7 @@ func InsertRows(ctx context.Context, tx pgx.Tx, items []api.Item) error { // Ins
 	for _, item := range items { // Iterar sobre cada elemento en los resultados
 		if _, err := tx.Exec(ctx,
 			`INSERT INTO items (
-				id, ticket, company, action, brokerage,
+				id, ticker, company, action, brokerage,
 				target_to, target_from, rating_from, rating_to, time, page_count, order_index, score
 			) VALUES (
 				$1, $2, $3, $4, $5,

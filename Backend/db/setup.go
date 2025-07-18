@@ -19,7 +19,7 @@ func InitTable(ctx context.Context, tx pgx.Tx) error {
 	// Esta tabla almacenará los datos obtenidos de la API.
 	log.Println("Creating items table.")
 	if _, err := tx.Exec(ctx,
-		"CREATE TABLE items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), ticket TEXT, company TEXT, action TEXT, brokerage TEXT, target_to TEXT, target_from TEXT, rating_from TEXT, rating_to TEXT, time TEXT, page_count INT, order_index INT, score FLOAT)"); err != nil {
+		"CREATE TABLE items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), ticker TEXT, company TEXT, action TEXT, brokerage TEXT, target_to TEXT, target_from TEXT, rating_from TEXT, rating_to TEXT, time TEXT, page_count INT, order_index INT, score FLOAT)"); err != nil {
 		return err
 	}
 	return nil

@@ -1,14 +1,44 @@
 <script setup lang="ts">
     import type { Item } from '../models/item.model'; // Importa el tipo Item desde el modelo
-    import { defineProps } from 'vue'; // Importa defineProps para definir las propiedades del componente
-    // Define las propiedades del componente usando defineProps
-
+    import { ref, computed } from 'vue'
     // Define una interfaz Props para tipar las propiedades del componente.
     interface Props { // Define una interfaz Props para tipar las propiedades del componente.
-        items: Item[];
+        item: Item[];
     }
 
-    defineProps<Props>(); // Define las propiedades del componente usando la interfaz Props. Esto permite que el componente reciba un array de objetos Country como propiedad.
+    const sortColumn = ref<string | null>(null);
+    const sortDirection = ref<'asc' | 'desc' | null>(null);
+
+    const sortedItems = computed(() => {
+        if (!sortColumn.value) {
+        return props.item;
+        }
+
+        const sorted = [...props.item].sort((a, b) => {
+        const valueA = a[sortColumn.value as keyof Item];
+        const valueB = b[sortColumn.value as keyof Item];
+
+        if (valueA < valueB) {
+            return sortDirection.value === 'asc' ? -1 : 1;
+        }
+        if (valueA > valueB) {
+            return sortDirection.value === 'asc' ? 1 : -1;
+        }
+        return 0;
+        });
+        return sorted;
+    });
+
+    const sort = (column: string) => {
+        if (sortColumn.value === column) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+        } else {
+        sortColumn.value = column;
+        sortDirection.value = 'asc';
+        }
+    }; 
+
+    const props = defineProps<Props>(); // Define las propiedades del componente usando la interfaz Props. Esto permite que el componente reciba un array de objetos Country como propiedad.
 </script>
 
 <template>
@@ -16,50 +46,74 @@
         <table class="w-full table-auto min-w-max text-left">
             <thead>
                 <tr>
-                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300">
+                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300" @click="sort('ticker')">
                         <p class="text-sm font-normal leading-none text-slate-800">
-                        TICKER
+                            TICKER
+                            <span v-if="sortColumn === 'ticker'">
+                                {{ sortDirection === 'asc' ? '⬆️' : '⬇️' }} <!-- Agrega una flecha de acuerdo a como se esté ordenando la columna -->
+                            </span>
                         </p>
                     </th>            
-                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300">
+                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300" @click="sort('company')">
                         <p class="text-sm font-normal leading-none text-slate-800">
-                        COMPANY
+                            COMPANY 
+                            <span v-if="sortColumn === 'company'">
+                                {{ sortDirection === 'asc' ? '⬆️' : '⬇️' }}
+                            </span>
                         </p>
                     </th>
-                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300">
+                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300" @click="sort('brokerage')">
                         <p class="text-sm font-normal leading-none text-slate-800">
-                        BROKERAGE
+                            BROKERAGE
+                            <span v-if="sortColumn === 'brokerage'">
+                                {{ sortDirection === 'asc' ? '⬆️' : '⬇️' }}
+                            </span>
                         </p>
                     </th>
-                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300">
+                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300" @click="sort('action')">
                         <p class="text-sm font-normal leading-none text-slate-800">
-                        ACTION
+                            ACTION
+                            <span v-if="sortColumn === 'action'">
+                                {{ sortDirection === 'asc' ? '⬆️' : '⬇️' }}
+                            </span>
                         </p>
                     </th>
-                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300">
+                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300" @click="sort('rating_from')">
                         <p class="text-sm font-normal leading-none text-slate-800">
-                        RATING_FROM
+                            RATING_FROM
+                            <span v-if="sortColumn === 'rating_from'">
+                                {{ sortDirection === 'asc' ? '⬆️' : '⬇️' }}
+                            </span>
                         </p>
                     </th>
-                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300">
+                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300" @click="sort('rating_to')">
                         <p class="text-sm font-normal leading-none text-slate-800">
-                        RATING_TO
+                            RATING_TO
+                            <span v-if="sortColumn === 'rating_to'">
+                                {{ sortDirection === 'asc' ? '⬆️' : '⬇️' }}
+                            </span>
                         </p>
                     </th>
-                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300">
+                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300" @click="sort('target_from')">
                         <p class="text-sm font-normal leading-none text-slate-800">
-                        TARGET_FROM
+                            TARGET_FROM
+                            <span v-if="sortColumn === 'target_from'">
+                                {{ sortDirection === 'asc' ? '⬆️' : '⬇️' }}
+                            </span>
                         </p>
                     </th>
-                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300">
+                    <th class="p-4 cursor-pointer border-b border-slate-300 bg-gray-300" @click="sort('target_to')">
                         <p class="text-sm font-normal leading-none text-slate-800">
-                        TARGET_TO
+                            TARGET_TO
+                            <span v-if="sortColumn === 'target_to'">
+                                {{ sortDirection === 'asc' ? '⬆️' : '⬇️' }}
+                            </span>
                         </p>
                     </th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="item in items" class="hover:bg-gray-100">
+                <tr v-for="item in sortedItems" class="hover:bg-gray-100">
                     <td class="p-4 border-b border-slate-200">
                         <p class="block text-sm text-slate-800">
                             {{ item.ticker }}

@@ -10,11 +10,20 @@ export const useItemStore = defineStore('item', () => {
   const itemsRecommendation = ref<Item[]>([])
   const totalItems = ref(0)
   const isLoading = ref(false)
+  const text = ref('')
 
   const fetchItems = async () => {
     try {
       isLoading.value = true
-      const { data } = await api.get(`/items?page=${page.value}`)
+
+      let data
+      if (text.value.trim() !== '') {
+        const response = await api.get(`/items/filter?text=${encodeURIComponent(text.value)}`)
+        data = response.data
+      } else {
+        const response = await api.get(`/items?page=${page.value}`)
+        data = response.data
+      }
       const { data: recommendedData } = await api.get('/items/recommended')
       items.value = data
       itemsRecommendation.value = recommendedData
@@ -31,6 +40,12 @@ export const useItemStore = defineStore('item', () => {
     fetchItems()
   }
 
+  const filterItems = (newText: string) => {
+    text.value = newText
+    page.value = 1 // reset a la primera página
+    fetchItems()
+  }
+
   return {
     page,
     items,
@@ -38,6 +53,7 @@ export const useItemStore = defineStore('item', () => {
     totalItems,
     isLoading,
     fetchItems,
-    changePage
+    changePage,
+    filterItems
   }
 })
