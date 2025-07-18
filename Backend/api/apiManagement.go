@@ -14,17 +14,18 @@ type ApiResponse struct {
 }
 
 type Item struct { //Los nombres en json:"..." le dicen a Go cómo debe mapear el JSON con los campos de la estructura.
-	Ticker      string `json:"ticker"`
-	Target_from string `json:"target_from"`
-	Target_to   string `json:"target_to"`
-	Company     string `json:"company"`
-	Action      string `json:"action"`
-	Brokerage   string `json:"brokerage"`
-	Rating_from string `json:"rating_from"`
-	Rating_to   string `json:"rating_to"`
-	Time        string `json:"time"`
-	PageCount   int    // Contador de páginas
-	OrderIndex  int    // Índice de orden para mantener el orden de los items
+	Ticker      string  `json:"ticker"`
+	Target_from string  `json:"target_from"`
+	Target_to   string  `json:"target_to"`
+	Company     string  `json:"company"`
+	Action      string  `json:"action"`
+	Brokerage   string  `json:"brokerage"`
+	Rating_from string  `json:"rating_from"`
+	Rating_to   string  `json:"rating_to"`
+	Time        string  `json:"time"`
+	PageCount   int     // Contador de páginas
+	OrderIndex  int     // Índice de orden para mantener el orden de los items
+	Score       float64 // Puntaje calculado
 }
 
 func ApiGetItems() []Item {

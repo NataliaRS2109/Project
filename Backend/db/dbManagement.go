@@ -23,7 +23,7 @@ func InitTable(ctx context.Context, tx pgx.Tx) error {
 	// Esta tabla almacenará los datos obtenidos de la API.
 	log.Println("Creating items table.")
 	if _, err := tx.Exec(ctx,
-		"CREATE TABLE items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), ticket TEXT, company TEXT, action TEXT, brokerage TEXT, target_to TEXT, target_from TEXT, rating_from TEXT, rating_to TEXT, time TEXT, page_count INT, order_index INT)"); err != nil {
+		"CREATE TABLE items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), ticket TEXT, company TEXT, action TEXT, brokerage TEXT, target_to TEXT, target_from TEXT, rating_from TEXT, rating_to TEXT, time TEXT, page_count INT, order_index INT, score FLOAT)"); err != nil {
 		return err
 	}
 	return nil
@@ -35,13 +35,13 @@ func InsertRows(ctx context.Context, tx pgx.Tx, items []api.Item) error { // Ins
 		if _, err := tx.Exec(ctx,
 			`INSERT INTO items (
 				id, ticket, company, action, brokerage,
-				target_to, target_from, rating_from, rating_to, time, page_count, order_index
+				target_to, target_from, rating_from, rating_to, time, page_count, order_index, score
 			) VALUES (
 				$1, $2, $3, $4, $5,
-				$6, $7, $8, $9, $10, $11, $12
+				$6, $7, $8, $9, $10, $11, $12, $13
 			)`, // Insertar cada elemento en la tabla "items"
 			uuid.New(), item.Ticker, item.Company, item.Action, item.Brokerage,
-			item.Target_to, item.Target_from, item.Rating_from, item.Rating_to, item.Time, item.PageCount, item.OrderIndex, // Usar uuid.New() para generar un nuevo UUID para cada fila
+			item.Target_to, item.Target_from, item.Rating_from, item.Rating_to, item.Time, item.PageCount, item.OrderIndex, item.Score, // Usar uuid.New() para generar un nuevo UUID para cada fila
 		); err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ func PrintItems(conn *pgx.Conn, c *fiber.Ctx) error {
 	}
 
 	rows, err := conn.Query(context.Background(),
-		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index FROM items WHERE page_count = $1`, page)
+		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items WHERE page_count = $1 ORDER BY order_index`, page)
 	if err != nil {
 		return fmt.Errorf("error querying items: %w", err)
 	}
@@ -88,6 +88,54 @@ func PrintItems(conn *pgx.Conn, c *fiber.Ctx) error {
 			&item.Time,
 			&item.PageCount,
 			&item.OrderIndex,
+			&item.Score,
+		); err != nil {
+			return fmt.Errorf("error scanning row: %w", err)
+		}
+
+		items = append(items, Result{ID: id, Item: item})
+	}
+
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("row iteration error: %w", err)
+	}
+
+	return c.JSON(items)
+}
+
+func PrintRecomendedItems(conn *pgx.Conn, c *fiber.Ctx) error {
+	rows, err := conn.Query(context.Background(),
+		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items ORDER BY score DESC LIMIT 10`)
+	if err != nil {
+		return fmt.Errorf("error querying items: %w", err)
+	}
+	defer rows.Close()
+
+	type Result struct {
+		ID       uuid.UUID `json:"id"`
+		api.Item           // incrustamos los campos de api.Item
+	}
+
+	var items []Result
+
+	for rows.Next() {
+		var id uuid.UUID
+		var item api.Item
+
+		if err := rows.Scan(
+			&id,
+			&item.Ticker,
+			&item.Company,
+			&item.Action,
+			&item.Brokerage,
+			&item.Target_to,
+			&item.Target_from,
+			&item.Rating_from,
+			&item.Rating_to,
+			&item.Time,
+			&item.PageCount,
+			&item.OrderIndex,
+			&item.Score,
 		); err != nil {
 			return fmt.Errorf("error scanning row: %w", err)
 		}

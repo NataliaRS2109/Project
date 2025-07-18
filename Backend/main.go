@@ -1,12 +1,16 @@
 package main
 
 import (
+	"backend/algorithm"
 	"backend/api"
 	"backend/db"
 	"backend/server"
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	crdbpgx "github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgxv5"
 	"github.com/jackc/pgx/v5"
@@ -47,6 +51,34 @@ func main() {
 	if len(items) == 0 {
 		log.Println("No items found in the response.")
 		return
+	}
+
+	// Calcular el score para cada item
+	for i := range items {
+		target_from := items[i].Target_from
+
+		// 1. Eliminar el símbolo $
+		target_from = strings.Replace(strings.Replace(target_from, ",", "", -1), "$", "", -1)
+
+		// 2. Convertir a float64
+		target_fromFloat, err := strconv.ParseFloat(target_from, 64)
+		if err != nil {
+			fmt.Println("Error al convertir:", err)
+		}
+
+		target_to := items[i].Target_to
+
+		// 1. Eliminar el símbolo $
+		target_to = strings.Replace(strings.Replace(target_to, ",", "", -1), "$", "", -1)
+
+		// 2. Convertir a float64
+		target_toFloat, err := strconv.ParseFloat(target_to, 64)
+		if err != nil {
+			fmt.Println("Error al convertir:", err)
+		}
+
+		score := algorithm.RatingChangeScore(items[i].Rating_from, items[i].Rating_to) // Calcular el puntaje del cambio de rating
+		items[i].Score = algorithm.CalcularScore(target_fromFloat, target_toFloat, score)
 	}
 
 	err = crdbpgx.ExecuteTx(context.Background(), conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
