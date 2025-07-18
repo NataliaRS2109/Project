@@ -1,6 +1,5 @@
 <script setup lang="ts">
     import type { Item } from '../models/item.model'; // Importa el tipo Item desde el modelo
-    // import { defineProps } from 'vue'; // Importa defineProps para definir las propiedades del componente
     // Define las propiedades del componente usando defineProps
     import ItemCard from './ItemCard.vue';
 
