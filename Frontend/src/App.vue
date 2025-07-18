@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import ItemsList from './components/ItemsList.vue'
   import PageHeader from './components/PageHeader.vue'
-  import ItemsRecommendation from './components/ItemsRecomendation.vue'
+  import ItemsRecommendation from './components/ItemsRecommendation.vue'
   //import axiosClient from './utils/axios'; // Importación de una instancia de axios para realizar peticiones HTTP
   import type { Item } from './models/item.model'; // Importa el tipo Item desde el modelo
   import { api } from './utils/axios.ts'; // Importa la instancia de axios para realizar peticiones HTTP
@@ -40,12 +40,12 @@
 <template>
   <PageHeader />
   <div class="mb-8 flex justify-between space-x-6 mt-4">
-    <button class="border border-cyan-800 rounded px-4 py-1.5 bg-cyan-700 hover:bg-cyan-800"
+    <button class="border border-purple-800 rounded px-4 py-1.5 bg-purple-700 hover:bg-cyan-800"
       @click="changePage(page - 1)"
       :disabled="page <= 1"
       :class="{ 'opacity-50 cursor-not-allowed': page <= 1 }"
     >Previous</button>
-    <button class="border border-cyan-800 rounded px-4 py-1.5 bg-cyan-700 hover:bg-cyan-800"
+    <button class="border border-purple-800 rounded px-4 py-1.5 bg-purple-700 hover:bg-cyan-800"
       @click="changePage(page + 1)"
       :disabled="page >= totalItems"
       :class="{ 'opacity-50 cursor-not-allowed': page >= totalItems }"

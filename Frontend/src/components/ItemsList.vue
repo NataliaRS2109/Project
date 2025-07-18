@@ -12,7 +12,7 @@
 </script>
 
 <template>
-    <div class="relative flex flex-col w-full h-full overflow-hidden bg-white shadow-md rounded-lg bg-clip-border mt-4">
+    <div class="relative flex flex-col w-full h-full overflow-auto bg-white shadow-md rounded-lg bg-clip-border mt-4">
         <table class="w-full table-auto min-w-max text-left">
             <thead>
                 <tr>
