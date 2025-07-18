@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import type { Item } from '../models/item.model'; // Import the Item type from the model
-    import { defineProps } from 'vue'; // Import defineProps to define component properties
+    // import { defineProps } from 'vue'; // Import defineProps to define component properties
 
     // Define the component properties using defineProps
     // Define an interface Props to type the component properties.
