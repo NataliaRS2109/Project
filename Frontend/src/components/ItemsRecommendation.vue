@@ -15,7 +15,9 @@
 <template>
     <div class="m-15">
         <h2 class="text-3xl font-semibold">Stock Recommendation</h2>
-        <p class="text-gray-400 m-2">Here are the best stocks for you:</p>        
+        <p class="text-gray-400 m-2">
+            Here are the best stocks for you:    
+        </p>        
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
         <div v-for="(item, index) in items" class="bg-white border rounded-3xl p-3 text-black relative">
