@@ -6,10 +6,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func StartApiServer(conn *pgx.Conn) {
+func StartApiServer(conn *pgxpool.Pool) {
 	app := fiber.New()
 	// Configuración de CORS para permitir solicitudes desde el frontend
 	app.Use(cors.New(cors.Config{

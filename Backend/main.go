@@ -14,6 +14,7 @@ import (
 
 	crdbpgx "github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgxv5"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
@@ -26,25 +27,41 @@ func main() {
 	// Conectar a la base de datos CockroachDB
 	// Leer la variable de conexión
 	dsn := os.Getenv("DATABASE_URL")
-	ctx := context.Background()        // Crear un contexto para la conexión
-	conn, err := pgx.Connect(ctx, dsn) // Conectar a la base de datos usando el DSN
-	// Manejo de errores al conectar a la base de datos
-	defer func() {
-		if err := conn.Close(context.Background()); err != nil { // Asegurarse de cerrar la conexión al final
-			// Si hay un error al cerrar la conexión, imprimir un mensaje de error
-			log.Fatal("failed to close connection", err)
-		}
-	}()
+	ctx := context.Background() // Crear un contexto para la conexión
+	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
-		log.Fatal("failed to connect database", err) // Si hay un error al conectar, imprimir un mensaje de error y salir del programa
+		log.Fatal("failed to connect to database pool", err)
 	}
+	defer pool.Close()
+
+	// conn, err := pgx.Connect(ctx, dsn) // Conectar a la base de datos usando el DSN
+	// // Manejo de errores al conectar a la base de datos
+	// defer func() {
+	// 	if err := conn.Close(context.Background()); err != nil { // Asegurarse de cerrar la conexión al final
+	// 		// Si hay un error al cerrar la conexión, imprimir un mensaje de error
+	// 		log.Fatal("failed to close connection", err)
+	// 	}
+	// }()
+	// if err != nil {
+	// 	log.Fatal("failed to connect database", err) // Si hay un error al conectar, imprimir un mensaje de error y salir del programa
+	// }
 
 	// Set up table
-	err = crdbpgx.ExecuteTx(context.Background(), conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return db.InitTable(context.Background(), tx)
-	})
+	// Iniciar una transacción desde el pool
+	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		log.Fatalf("error initializing table: %v", err)
+		log.Fatalf("Failed to begin transaction: %v", err)
+	}
+	defer tx.Rollback(ctx) // Por seguridad, hacer rollback si falla algo
+
+	// Llamar InitTable usando la transacción
+	if err := db.InitTable(ctx, tx); err != nil {
+		log.Fatalf("Failed to initialize table: %v", err)
+	}
+
+	// Confirmar la transacción si todo salió bien
+	if err := tx.Commit(ctx); err != nil {
+		log.Fatalf("Failed to commit transaction: %v", err)
 	}
 
 	items := api.ApiGetItems() // Obtener los items de la API
@@ -81,14 +98,26 @@ func main() {
 		items[i].Score = algorithm.CalcularScore(target_fromFloat, target_toFloat, score)
 	}
 
-	err = crdbpgx.ExecuteTx(context.Background(), conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return db.InsertRows(context.Background(), tx, items)
+	// err = crdbpgx.ExecuteTx(context.Background(), pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	// 	return db.InsertRows(context.Background(), tx, items)
+	// })
+	// if err != nil {
+	// 	log.Fatalf("error inserting rows: %v", err) // Manejo de errores al insertar los datos en la base de datos
+	// }
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		log.Fatalf("Failed to acquire connection: %v", err)
+	}
+	defer conn.Release()
+
+	err = crdbpgx.ExecuteTx(ctx, conn.Conn(), pgx.TxOptions{}, func(tx pgx.Tx) error {
+		return db.InsertRows(ctx, tx, items)
 	})
 	if err != nil {
-		log.Fatalf("error inserting rows: %v", err) // Manejo de errores al insertar los datos en la base de datos
+		log.Fatalf("error inserting rows: %v", err)
 	}
 	log.Println("New rows created.")
 
 	// Start the server
-	server.StartApiServer(conn) // Iniciar el servidor con la conexión a la base de datos
+	server.StartApiServer(pool) // Iniciar el servidor con la conexión a la base de datos
 }

@@ -7,10 +7,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func PrintItems(conn *pgx.Conn, c *fiber.Ctx) error {
+func PrintItems(conn *pgxpool.Pool, c *fiber.Ctx) error {
 
 	// 1. Leer parámetro de página desde la URL
 	page := c.QueryInt("page", 1)
@@ -64,7 +64,7 @@ func PrintItems(conn *pgx.Conn, c *fiber.Ctx) error {
 	return c.JSON(items)
 }
 
-func PrintRecomendedItems(conn *pgx.Conn, c *fiber.Ctx) error {
+func PrintRecomendedItems(conn *pgxpool.Pool, c *fiber.Ctx) error {
 	rows, err := conn.Query(context.Background(),
 		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items ORDER BY score DESC LIMIT 12`)
 	if err != nil {
