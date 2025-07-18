@@ -12,6 +12,11 @@
 </script>
 
 <template>
+    <div class="m-6">
+        <h2 class="text-3xl font-semibold">Stock Recommendation</h2>
+        <p class="text-gray-400 m-2">Here are the best stocks for you:</p>
+        
+    </div>
     <div class="relative flex flex-col w-full h-full overflow-hidden bg-white shadow-md rounded-lg bg-clip-border mt-4">
         <table class="w-full table-auto min-w-max text-left">
             <thead>
