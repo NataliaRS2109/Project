@@ -105,7 +105,7 @@ func PrintItems(conn *pgx.Conn, c *fiber.Ctx) error {
 
 func PrintRecomendedItems(conn *pgx.Conn, c *fiber.Ctx) error {
 	rows, err := conn.Query(context.Background(),
-		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items ORDER BY score DESC LIMIT 10`)
+		`SELECT id, ticket, company, action, brokerage, target_to, target_from, rating_from, rating_to, time, page_count, order_index, score FROM items ORDER BY score DESC LIMIT 12`)
 	if err != nil {
 		return fmt.Errorf("error querying items: %w", err)
 	}
