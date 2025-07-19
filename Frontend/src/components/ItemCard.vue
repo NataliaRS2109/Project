@@ -23,7 +23,7 @@
         <h4 class="text-2xl font-bold">{{ item.ticker }} - {{ item.company }}</h4>
         <p><span class="font-bold">Brokerage:</span> {{ item.brokerage }}</p>
         <button 
-        class="border border-purple-800 rounded px-2 py-1 mt-4 w-20 text-white bg-purple-900 hover:bg-purple-700"
+        class="cursor-pointer rounded-xl px-2 py-1 mt-4 w-20 text-gray-200 bg-purple-400 hover:bg-purple-700 "
         @click="changeShowDetails(showDetails===1 ? 0 : 1)">
             Details
         </button>
