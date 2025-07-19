@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Hi! I'm Natalia Rodriguez, a systems engineer passionate about learning new technologies and facing new challenges.
+Hi! I'm Natalia Rodríguez, a systems engineer passionate about learning new technologies and facing new challenges.
 
 This project is about consuming a REST API for stock data using Vue.js, Tailwind CSS, TypeScript, Pinia, Go (Golang) and CockroachDB. To complete this challenge, I studied these technologies and applied them to build a functional and responsive basic web application.
 
